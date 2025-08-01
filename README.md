@@ -6,26 +6,26 @@ It provides role-based access for Admins, Managers, and Employees to manage and 
 
  1) Features
     
-  .) Authentication & Authorization
+  . Authentication & Authorization
      - Session-based login system
      - Role-based access: Admin, Manager, Employee
      - Secure password encryption using AES
-  .) Employee Management
+  . Employee Management
      - CRUD operations for employees
      -  Assign managers to employees
      -  View profile and position info
      -  Upload and display employee images
      
-  .) Attendance Management
+  . Attendance Management
      - Mark attendance with type (Present, Absent, Leave)
      - Filter by date, employee, and attendance type
      - View attendance summary
     
-  .) Manager Access
+  . Manager Access
      - View own profile and attendance
      - View team members' information and attendance
      
-  .) Admin Access
+  . Admin Access
      - View all employees
      - View all attendance records
      - Assign Manager to employees
