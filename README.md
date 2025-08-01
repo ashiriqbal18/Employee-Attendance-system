@@ -4,7 +4,7 @@ This is a web-based Employee Attendance Management System built using ASP.NET Co
 
 It provides role-based access for Admins, Managers, and Employees to manage and monitor employee data and attendance records.
 
- 1)Features
+ 1) Features
   .) Authentication & Authorization
      - Session-based login system
      - Role-based access: Admin, Manager, Employee
