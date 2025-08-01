@@ -1,0 +1,771 @@
+﻿@{
+    ViewData["Title"] = "Employee & Attendance";
+}
+
+<style>
+    .profile-image-container {
+        position: absolute;
+        top: 20px;
+        right: 40px;
+        width: 120px;
+        height: 120px;
+        border-radius: 50%;
+        overflow: hidden;
+        border: 2px solid #ccc;
+        cursor: pointer;
+    }
+
+        .profile-image-container img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+            border-radius: 50%;
+            transition: 0.3s ease-in-out;
+        }
+
+        .profile-image-container:hover .overlay {
+            display: flex;
+        }
+
+    .overlay {
+        position: absolute;
+        top: 0;
+        left: 0;
+        width: 120px;
+        height: 120px;
+        background-color: rgba(0, 0, 0, 0.5);
+        color: white;
+        font-size: 36px;
+        justify-content: center;
+        align-items: center;
+        border-radius: 50%;
+        display: none;
+    }
+
+    #imageFile {
+        position: absolute;
+        top: 0;
+        left: 0;
+        width: 120px;
+        height: 120px;
+        opacity: 0;
+        cursor: pointer;
+    }
+
+    #employeeDetailCard {
+        position: fixed;
+        top: 50%;
+        left: 50%;
+        transform: translate(-50%, -50%);
+        z-index: 1050;
+        display: none;
+        background: white;
+        border-radius: 15px;
+        box-shadow: 0 0 30px rgba(0, 0, 0, 0.3);
+        padding: 20px;
+        max-width: 600px;
+        width: 90%;
+    }
+
+    table.dataTable {
+        table-layout: fixed !important;
+        width: 100% !important;
+    }
+
+    table.dataTable th,
+    table.dataTable td {
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
+    }
+    /* Fix DataTable responsiveness */
+    .dataTables_wrapper {
+        overflow-x: auto;
+    }
+
+    #employeeDetailOverlay {
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        background-color: rgba(0, 0, 0, 0.5);
+        z-index: 1040;
+        display: none;
+    }
+
+</style>
+
+
+<div id="addEmployee" class="container mt-4">
+    <h2 class="mb-4">Employee Form</h2>
+
+    <form id="employeeForm" class="needs-validation" enctype="multipart/form-data" novalidate>
+        <input type="hidden" id="employeeId" />
+
+        <div class="mb-3">
+            <label for="name" class="form-label">Name:</label>
+            <input type="text" class="form-control" id="name" name="Name" required />
+        </div>
+
+        <div class="mb-3">
+            <label for="email" class="form-label">Email:</label>
+            <input type="email" class="form-control" id="email" name="Email" required />
+        </div>
+
+        <div class="mb-3">
+            <label for="password" class="form-label">Password:</label>
+            <input type="password" class="form-control" id="password" name="Password" required />
+        </div>
+
+        <div class="mb-3">
+            <label for="role" class="form-label">Role:</label>
+            <select class="form-select" id="role" name="Role" required>
+                <option value="">-- Select Role --</option>
+                <option value="Admin">Admin</option>
+                <option value="Manager">Manager</option>
+                <option value="Employee">Employee</option>
+            </select>
+        </div>
+
+        <div class="mb-3">
+            <label for="managerId" class="form-label">Manager:</label>
+            <select class="form-select" id="managerId" name="ManagerId">
+                <option value="">-- Select Manager --</option>
+            </select>
+        </div>
+
+        <div class="mb-3">
+            <label for="position" class="form-label">Position:</label>
+            <select class="form-select" id="position" name="Position">
+                <option value="">-- Select Position --</option>
+                <option value="Software Engineer">Software Engineer</option>
+                <option value="HR Manager">HR Manager</option>
+                <option value="Project Manager">Project Manager</option>
+                <option value="Business Analyst">Business Analyst</option>
+                <option value="Intern">Intern</option>
+                <option value="Team Lead">Team Lead</option>
+                <option value="Designer">Designer</option>
+                <option value="QA Engineer">QA Engineer</option>
+            </select>
+        </div>
+
+
+        <div class="mb-3">
+            <label for="address" class="form-label">Address:</label>
+            <textarea class="form-control" id="address" name="Address" rows="2"></textarea>
+        </div>
+
+        <div class="mb-3">
+            <label for="salary" class="form-label">Salary:</label>
+            <input type="number" class="form-control" id="salary" name="Salary" step="0.01" />
+        </div>
+
+        <!-- Profile Image Upload -->
+        <div class="profile-image-container" id="uploadTrigger">
+            <img id="profilePreview" src="@Url.Content("~/image/default-avatar.PNG")"
+                 alt="Profile" class="rounded-circle" width="120" height="120" />
+
+            <div class="overlay">+</div>
+            <input type="file" id="imageFile" name="ImageFile" accept="image/*" />
+        </div>
+
+        <div class="d-flex gap-2">
+            <button type="submit" class="btn btn-primary">Save</button>
+            <button type="reset" class="btn btn-secondary" id="cancel">Cancel</button>
+        </div>
+    </form>
+</div>
+
+<div id="viewEmployee" class="container mt-4">
+    <h2 class="mb-4">All Employees</h2>
+
+    <input type="text" id="employeeSearchBox" class="form-control mb-3" placeholder="Search Employees" />
+
+    <div class="table-responsive">
+        <table id="employeeTable" class="table table-bordered table-striped">
+            <thead class="table-dark">
+                <tr>
+                    <th>ID</th>
+                    <th>Name</th>
+                    <th>Email</th>
+                    <th>Position</th>
+                    <th>Address</th>
+                    <th>Salary</th>
+                    <th>Role</th>
+                    <th>Manager</th>
+                    <th>Actions</th>
+                </tr>
+            </thead>
+            <tbody></tbody>
+        </table>
+    </div>
+</div>
+
+
+<div id="AddAttendence" class="container mt-5">
+    <h2 class="mb-4">Attendance Form</h2>
+
+    <form id="attendanceForm" class="needs-validation" novalidate>
+        <div class="mb-3">
+            <label for="attEmployeeId" class="form-label">Employee:</label>
+            <select id="attEmployeeId" class="form-select" required>
+                <option value="">-- Select Employee --</option>
+            </select>
+        </div>
+
+        <div class="mb-3">
+            <label for="attDate" class="form-label">Date:</label>
+            <input type="date" id="attDate" class="form-control" required />
+        </div>
+
+        <div class="mb-4">
+            <label for="attType" class="form-label">Attendance Type:</label>
+            <select id="attType" class="form-select" required>
+                <option value="Present">Present</option>
+                <option value="Absent">Absent</option>
+                <option value="Leave">Leave</option>
+            </select>
+        </div>
+
+        <button type="submit" class="btn btn-success">Add Attendance</button>
+    </form>
+</div>
+
+
+<div id="ViewAttendance" class="container mt-5">
+    <h2 class="mb-4">Attendance Records</h2>
+
+    <input type="text" id="attSearchInput" class="form-control mb-3" placeholder="Search Attendance" />
+
+    <div class="table-responsive">
+        <table id="attendanceTable" class="table table-bordered table-striped">
+            <thead class="table-dark">
+                <tr>
+                    <th>Employee Name</th>
+                    <th>Date</th>
+                    <th>Type</th>
+                </tr>
+            </thead>
+            <tbody></tbody>
+        </table>
+    </div>
+</div>
+
+<!-- Overlay -->
+<div id="employeeDetailOverlay"></div>
+
+<!-- Employee Popup Card -->
+<div id="employeeDetailCard" class="card shadow-sm">
+    <button type="button" class="btn-close position-absolute top-0 end-0 m-3" id="closeDetailCard" aria-label="Close"></button>
+    <div class="card-body d-flex flex-column align-items-center text-center">
+        <img id="empImage" src="/image/default-avatar.PNG" alt="Profile" class="rounded-circle mb-3" style="width: 100px; height: 100px; object-fit: cover;" />
+        <h4 id="empName" class="card-title">Name</h4>
+        <p id="empEmail" class="text-muted">email@example.com</p>
+        <ul class="list-group list-group-flush w-100 text-start">
+            <li class="list-group-item"><strong>Role:</strong> <span id="empRole"></span></li>
+            <li class="list-group-item"><strong>Position:</strong> <span id="empPosition"></span></li>
+            <li class="list-group-item"><strong>Address:</strong> <span id="empAddress"></span></li>
+            <li class="list-group-item"><strong>Salary:</strong> <span id="empSalary"></span></li>
+            <li class="list-group-item"><strong>Manager ID:</strong> <span id="empManagerId"></span></li>
+        </ul>
+    </div>
+</div>
+
+
+@section Scripts {
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+    <script src="https://cdn.datatables.net/1.13.6/js/jquery.dataTables.min.js"></script><<!-- jQuery -->
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+
+    <!-- DataTables JS -->
+    <script src="https://cdn.datatables.net/1.13.6/js/jquery.dataTables.min.js"></script>
+    <script src="https://cdn.datatables.net/1.13.6/js/dataTables.bootstrap5.min.js"></script>
+
+
+
+    <!-- Bootstrap 4 -->
+    <link href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css" rel="stylesheet" />
+    <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/js/bootstrap.bundle.min.js"></script>
+
+
+
+    <script>
+        let attendanceTable = null;
+        let employeeTable = null;
+        let allEmployees = [];
+
+
+        $(document).ready(function () {
+            loadManagers();
+            loadEmployees();
+            loadAllAttendance();
+
+           $('#closeDetailCard, #employeeDetailOverlay').click(function () {
+                $('#employeeDetailCard').fadeOut();
+                $('#employeeDetailOverlay').fadeOut();
+            });
+
+        $(document).on('click', '.show-detail', function () {
+            const empId = $(this).data('id');
+            const employee = allEmployees.find(e => e.id === empId);
+
+            if (employee) {
+                showEmployeeDetail(employee);
+            } else {
+                alert("Employee not found.");
+                console.warn("Could not find employee with ID:", empId);
+            }
+        });
+
+
+                $(document).on('keydown', function (e) {
+            if (e.key === "Escape") {
+                $('#employeeDetailModal').modal('hide'); // Just in case
+            }
+        });
+
+
+        // When image is clicked, trigger the file input
+        $('#profilePreview').on('click', function () {
+            $('#imageFile').click();
+        });
+
+        // Preview selected image
+        $('#imageFile').on('change', function (e) {
+            const file = e.target.files[0];
+            if (file) {
+                const reader = new FileReader();
+                reader.onload = function (e) {
+                    $('#profilePreview').attr('src', e.target.result);
+                };
+                reader.readAsDataURL(file);
+            }
+        });
+
+
+            // UI Section Toggle
+            $("#addEmployee, #viewEmployee, #AddAttendence, #ViewAttendance").hide();
+            $("#viewEmployee").show();
+
+            $('.dropdown-toggle').click(function () {
+                const targetId = $(this).data('toggle');
+                $('#' + targetId).slideToggle();
+            });
+
+            $(".sidebar a").click(function () {
+                $(".sidebar a").removeClass("active");
+                $(this).addClass("active");
+            });
+
+            $("#btnMyInfo").click(function () {
+                $("#addEmployee").show();
+                $("#viewEmployee").hide();
+                $("#AddAttendence").hide();
+                $("#ViewAttendance").hide();
+            });
+
+            $("#btnMyAttendance").click(function () {
+                $("#addEmployee").hide();
+                $("#viewEmployee").show();
+                $("#AddAttendence").hide();
+                $("#ViewAttendance").hide();
+            });
+
+            $("#btnMyTeam").click(function () {
+                $("#addEmployee").hide();
+                $("#viewEmployee").hide();
+                $("#AddAttendence").show();
+                $("#ViewAttendance").hide();
+            });
+
+            $("#btnTeamAttendance").click(function () {
+                $("#addEmployee").hide();
+                $("#viewEmployee").hide();
+                $("#AddAttendence").hide();
+                $("#ViewAttendance").show();
+            });
+
+            $('#cancel').click(function () {
+                $('#employeeForm')[0].reset();
+                $('#employeeId').val('');
+                $('#profilePreview').attr('src', '/image/default-avatar.PNG'); 
+            });
+
+            // Load Managers
+            function loadManagers() {
+                $.ajax({
+                    url: '/Employee/GetAllEmployees',
+                    method: 'GET',
+                    success: function (res) {
+                        if (res.success) {
+                            let options = '<option value="">-- Select Manager --</option>';
+                            let empOptions = '<option value="">-- Select Employee --</option>';
+                            $.each(res.data, function (i, emp) {
+                                empOptions += `<option value="${emp.id}">${emp.name}</option>`;
+                                if (emp.role.toLowerCase() === 'manager') {
+                                    options += `<option value="${emp.id}">${emp.name}</option>`;
+                                }
+                            });
+                            $('#managerId').html(options);
+                            $('#attEmployeeId').html(empOptions);
+                        }
+                    }
+                });
+            }
+
+        // Load Employees
+        function loadEmployees(keyword = '') {
+            $.ajax({
+                url: '/Employee/GetAllEmployees',
+                method: 'GET',
+                success: function (res) {
+                    if (res.success) {
+                        allEmployees = res.data;
+                        let rows = '';
+                        $.each(res.data, function (i, emp) {
+                            rows += `
+                                <tr>
+                                    <td>${emp.id}</td>
+                                    <td>${emp.name}</td>
+                                    <td>${emp.email}</td>
+                                    <td>${emp.position ?? ''}</td>
+                                    <td>${emp.address ?? ''}</td>
+                                    <td>${emp.salary ?? ''}</td>
+                                    <td>${emp.role}</td>
+                                    <td>${(allEmployees.find(e => e.id === emp.managerId)?.name) || ''}</td>
+
+                                    
+                                    <td>
+                                        <button class="btn btn-sm btn-warning edit" data-id="${emp.id}">Edit</button>
+                                        <button class="btn btn-sm btn-danger delete" data-id="${emp.id}">Delete</button>
+                                        <button class="btn btn-sm btn-info show-detail" data-id="${emp.id}">Details</button>
+                                    </td>
+                                </tr>`;
+                        });
+
+                        if (employeeTable !== null) {
+                            employeeTable.destroy();
+                            $('#employeeTable tbody').empty();
+                        }
+
+                        $('#employeeTable tbody').html(rows);
+                        
+                        employeeTable = $('#employeeTable').DataTable({
+                            searching: false,
+                            paging: true,
+                            ordering: true,
+                            info: true,
+                            scrollX: false,
+                            autoWidth: false,
+                            columnDefs: [
+                                { width: '100px', targets: [0, 1, 2, 3, 4, 5, 6, 7] }, // other columns
+                                { width: '200px', targets: 8 } 
+                            ]
+
+                        });
+                        
+
+                    }
+                }
+            });
+        }
+
+        function showEmployeeDetail(emp) {
+            $('#empImage').attr('src', emp.imagePath || '/image/default-avatar.PNG');
+            $('#empName').text(emp.name);
+            $('#empEmail').text(emp.email);
+            $('#empRole').text(emp.role);
+            $('#empPosition').text(emp.position || '—');
+            $('#empAddress').text(emp.address || '—');
+            $('#empSalary').text(emp.salary || '—');
+            const manager = allEmployees.find(e => e.id === emp.managerId);
+            const managerName = manager ? manager.name : 'N/A';
+            $('#empManagerId').text(managerName);
+
+            $('#employeeDetailOverlay').fadeIn();
+            $('#employeeDetailCard').fadeIn();
+        }
+
+
+                    // Save Employee
+        $('#employeeForm').submit(function (e) {
+            e.preventDefault();
+            const role = $('#role').val();
+            const managerId = $('#managerId').val();
+
+            if ((role === 'Manager' || role === 'Admin') && managerId) {
+                alert(`${role} cannot have a manager assigned.`);
+                return;
+            }
+
+            const formData = new FormData();
+
+            formData.append('Id', $('#employeeId').val() || 0);
+            formData.append('Name', $('#name').val());
+            formData.append('Email', $('#email').val());
+            formData.append('Password', $('#password').val());
+            formData.append('Role', role);
+            formData.append('ManagerId', managerId || '');
+            formData.append('Position', $('#position').val());
+            formData.append('Address', $('#address').val());
+            formData.append('Salary', $('#salary').val());
+
+            const imageFile = $('#imageFile')[0].files[0];
+            if (imageFile) {
+                formData.append('ImageFile', imageFile);
+            }
+            var emp_id = $('#employeeId').val();
+            const url = $('#employeeId').val()
+                ? '/Employee/UpdateEmployee'
+                : '/Employee/AddEmployee';
+
+            $.ajax({
+                url: url,
+                method: 'POST',
+                data: formData,
+                processData: false, // Important for FormData
+                contentType: false, // Important for FormData
+                success: function (res) {
+                    alert(res.message);
+                    if (res.success) {
+                        $('#employeeForm')[0].reset();
+                        $('#employeeId').val('');
+                        $('#profilePreview').attr('src', '/image/default-avatar.PNG');
+                        loadEmployees();
+                        loadManagers();
+                    }
+                },
+                error: function (xhr, status, err) {
+                    console.error('Error saving employee:', err);
+                    alert('Failed to save employee.');
+                }
+            });
+                    $("#addEmployee").hide();
+                    $("#viewEmployee").show();
+                    $("#AddAttendence").hide();
+                    $("#ViewAttendance").hide();
+
+        });
+
+
+                   // Edit Button Click
+        $(document).on('click', '.edit', function () {
+            const id = $(this).data('id');
+
+            $.ajax({
+                url: `/Employee/GetEmployeeById?id=${id}`,
+                method: 'GET',
+                dataType: 'json',
+                success: function (res) {
+                    if (res.success) {
+                        const e = res.data;
+
+                        // Set values in the edit form
+                        $('#employeeId').val(e.id);
+                        $('#name').val(e.name);
+                        $('#email').val(e.email);
+                        $('#password').val(e.password); // Encrypted or decrypted? Be careful
+                        $('#role').val(e.role);
+                        $('#managerId').val(e.managerId);
+
+                        // NEW FIELDS
+                        $('#position').val(e.position);
+                        $('#address').val(e.address);
+                        $('#salary').val(e.salary);
+
+                         if (e.imagePath) {
+                                $('#profilePreview').attr('src', e.imagePath).show(); // Don't prepend /image/
+                         } 
+                         else {
+                                $('#profilePreview').attr('src', '/image/default-avatar.PNG').show();
+                         }
+
+
+                        $("#addEmployee").show();
+                    $("#viewEmployee").hide();
+                    $("#AddAttendence").hide();
+                    $("#ViewAttendance").hide();
+                    } else {
+                        alert(res.message || "Failed to load employee.");
+                    }
+                },
+                error: function (xhr, status, error) {
+                    console.error('Error fetching employee:', error);
+                    alert('Something went wrong while fetching employee data.');
+                }
+            });
+        });
+
+
+            // Delete Button Click
+            $(document).on('click', '.delete', function () {
+                const id = $(this).data('id');
+
+                if (confirm('Are you sure?')) {
+                    $.ajax({
+                        url: '/Employee/DeleteEmployee',
+                        method: 'POST',
+                        data: { id: id },
+                        success: function (res) {
+                            alert(res.message);
+                            if (res.success) {
+                                loadEmployees();
+                                loadAllAttendance();
+                            }
+                        },
+                        error: function (xhr, status, error) {
+                            console.error('Error deleting employee:', error);
+                            alert('Something went wrong while deleting the employee.');
+                        }
+                    });
+                }
+            });
+
+            // Save Attendance
+            $('#attendanceForm').submit(function (e) {
+                e.preventDefault();
+                const data = {
+                    employeeId: $('#attEmployeeId').val(),
+                    date: $('#attDate').val(),
+                    attendanceType: $('#attType').val()
+                };
+
+                $.ajax({
+                    url: '/Attendance/Add',
+                    method: 'POST',
+                    contentType: 'application/json',
+                    data: JSON.stringify(data),
+                    success: function (res) {
+                        if (res.success) {
+                            alert(res.message);
+                            $('#attendanceForm')[0].reset();
+                            loadAllAttendance();
+                        } else {
+                            alert("Failed to add attendance.");
+                        }
+                    }
+                });
+            });
+
+            // Load Attendance
+            function loadAllAttendance() {
+                $.get('/Attendance/GetAllNamedAttendence', function (res) {
+                    if (res.success) {
+                        if ($.fn.DataTable.isDataTable('#attendanceTable')) {
+                            $('#attendanceTable').DataTable().clear().destroy();
+                        }
+
+                        let rows = '';
+                        $.each(res.data, function (i, a) {
+                            const name = a.employeeName;
+                            const date = new Date(a.date).toLocaleDateString();
+                            const type = a.attendanceType;
+
+                            rows += `<tr>
+                                <td>${name}</td>
+                                <td>${date}</td>
+                                <td>${type}</td>
+                            </tr>`;
+                        });
+
+                        $('#attendanceTable tbody').html(rows);
+                        $('#attendanceTable').DataTable({
+                            searching: false,
+                            paging: true,
+                            ordering: true,
+                            info: false
+                        });
+                    }
+                });
+            }
+
+            // Employee Search
+            $('#employeeSearchBox').on('input', function () {
+                const keyword = $(this).val();
+
+                $.ajax({
+                    url: '/Employee/SearchEmployees',
+                    method: 'GET',
+                    data: { search: keyword },
+                    dataType: 'json',
+                    success: function (res) {
+                        if (res.success) {
+                            if ($.fn.DataTable.isDataTable('#employeeTable')) {
+                                $('#employeeTable').DataTable().clear().destroy();
+                            }
+
+                            let rows = '';
+                            $.each(res.data, function (i, emp) {
+                                rows += `
+                                    <tr>
+                                        <td>${emp.id}</td>
+                                        <td>${emp.name}</td>
+                                        <td>${emp.email}</td>
+                                        <td>${emp.role}</td>
+                                        <td>${emp.managerId ?? ''}</td>
+                                        <td>
+                                            <button class="btn btn-sm btn-warning edit" data-id="${emp.id}">Edit</button>
+                                            <button class="btn btn-sm btn-danger delete" data-id="${emp.id}">Delete</button>
+                                        </td>
+                                    </tr>`;
+                            });
+
+                            $('#employeeTable tbody').html(rows);
+                            $('#employeeTable').DataTable({
+                                searching: false,
+                                paging: true,
+                                ordering: true,
+                                info: false
+                            });
+                        }
+                    },
+                    error: function (xhr, status, error) {
+                        console.error('SearchEmployees AJAX error:', error);
+                    }
+                });
+            });
+
+            // Attendance Search
+            $('#attSearchInput').on('input', function () {
+                const keyword = $(this).val();
+
+                $.ajax({
+                    url: '/Attendance/SearchAttendance',
+                    method: 'GET',
+                    data: { search: keyword },
+                    dataType: 'json',
+                    success: function (res) {
+                        if (res.success) {
+                            if ($.fn.DataTable.isDataTable('#attendanceTable')) {
+                                $('#attendanceTable').DataTable().clear().destroy();
+                            }
+
+                            let rows = '';
+                            $.each(res.data, function (i, r) {
+                                const date = new Date(r.date).toLocaleDateString();
+                                rows += `<tr>
+                                    <td>${r.employeeName}</td>
+                                    <td>${date}</td>
+                                    <td>${r.attendanceType}</td>
+                                </tr>`;
+                            });
+
+                            $('#attendanceTable tbody').html(rows);
+                            $('#attendanceTable').DataTable({
+                                searching: false,
+                                paging: true,
+                                ordering: true,
+                                info: false
+                            });
+                        }
+                    },
+                    error: function (xhr, status, error) {
+                        console.error('SearchAttendance AJAX error:', error);
+                    }
+                });
+            });
+        });
+    </script>
+}
+

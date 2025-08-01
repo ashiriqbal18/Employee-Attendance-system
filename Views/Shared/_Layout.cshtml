@@ -1,0 +1,214 @@
+﻿@{
+    var name = Context.Session.GetString("Name") ?? "User";
+    var role = Context.Session.GetString("Role") ?? "None";
+}
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>@ViewData["Title"] - final</title>
+
+    <link rel="stylesheet" href="~/lib/bootstrap/dist/css/bootstrap.min.css" />
+    <link rel="stylesheet" href="~/css/site.css" asp-append-version="true" />
+    <link rel="stylesheet" href="~/final.styles.css" asp-append-version="true" />
+    <link rel="stylesheet" href="https://cdn.datatables.net/1.13.6/css/jquery.dataTables.min.css" />
+
+    @if (role == "Manager" || role == "Employee" || role == "Admin")
+    {
+        <style>
+            body {
+                background: linear-gradient(to right, #e0eafc, #cfdef3, #f6e6f7);
+                font-family: 'Segoe UI', sans-serif;
+                margin: 0;
+            }
+
+            .top-bar {
+                background: #343a40;
+                color: white;
+                padding: 1rem 1.5rem;
+                display: flex;
+                justify-content: space-between;
+                align-items: center;
+                border-radius: 0.5rem;
+                box-shadow: 0 2px 8px rgba(0, 0, 0, 0.25);
+                margin-bottom: 1rem;
+            }
+
+            .dashboard-wrapper {
+                display: flex;
+                gap: 1rem;
+                padding: 0 1rem;
+            }
+
+            .sidebar {
+                background-color: #212529;
+                color: white;
+                padding: 1rem;
+                border-radius: 0.5rem;
+                width: 220px;
+                min-height: calc(100vh - 130px);
+                box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+            }
+
+                .sidebar a {
+                    display: block;
+                    color: #fff;
+                    padding: 0.75rem 1rem;
+                    margin: 0.25rem 0;
+                    text-decoration: none;
+                    border-radius: 0.25rem;
+                    transition: all 0.3s ease;
+                }
+
+                    .sidebar a:hover,
+                    .sidebar a.active {
+                        background-color: #ffffff;
+                        color: #212529;
+                        font-weight: bold;
+                        box-shadow: 0 4px 12px rgba(0, 123, 255, 0.4);
+                    }
+
+            .main-content {
+                flex: 1;
+                background: white;
+                padding: 1.5rem;
+                border-radius: 0.5rem;
+                box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+                opacity: 0;
+                transform: translateY(10px);
+                animation: fadeInCard 0.4s ease forwards;
+            }
+
+            @@keyframes fadeInCard {
+                to {
+                    opacity: 1;
+                    transform: translateY(0);
+                }
+            }
+
+            footer {
+                margin-top: 2rem;
+            }
+        </style>
+    }
+</head>
+<body>
+
+    <!-- Manager Layout -->
+    <div class="top-bar">
+        <div><strong>Welcome, @name (@role)</strong></div>
+        <div><a href="#" id="logoutBtn" class="btn btn-sm btn-danger">Sign Out</a></div>
+    </div>
+    @if (role == "Admin")
+    {
+        <div class="dashboard-wrapper">
+            <div class="sidebar">
+
+                <!-- Employees Dropdown -->
+                <details>
+                    <summary><strong>Employees</strong></summary>
+                    <div style="padding-left: 10px;">
+                        <a href="#" id="btnMyInfo" style="display: block; margin: 2px 0;">Add Employee</a>
+                        <a href="#" id="btnMyAttendance" style="display: block; margin: 2px 0;">View Employee</a>
+                    </div>
+                </details>
+
+                <!-- Attendance Dropdown -->
+                <details>
+                    <summary><strong>Attendance</strong></summary>
+                    <div style="padding-left: 10px;">
+                        <a href="#" id="btnMyTeam" style="display: block; margin: 2px 0;">Add Attendance</a>
+                        <a href="#" id="btnTeamAttendance" style="display: block; margin: 2px 0;">View Attendance</a>
+                    </div>
+                </details>
+
+            </div>
+
+            <div class="main-content">
+                @RenderBody()
+            </div>
+        </div>
+    }
+
+
+
+
+
+    @if (role == "Manager")
+    {
+        <div class="dashboard-wrapper">
+            <div class="sidebar">
+
+                <!-- Manager Dropdown -->
+                <details>
+                    <summary><strong>Manager</strong></summary>
+                    <div style="padding-left: 10px;">
+                        <a href="#" id="btnMyInfo" style="display: block; margin: 2px 0;">My Info</a>
+                        <a href="#" id="btnMyAttendance" style="display: block; margin: 2px 0;">My Attendance</a>
+                    </div>
+                </details>
+
+                <!-- Team Dropdown -->
+                <details>
+                    <summary><strong>Team</strong></summary>
+                    <div style="padding-left: 10px;">
+                        <a href="#" id="btnMyTeam" style="display: block; margin: 2px 0;">My Team</a>
+                        <a href="#" id="btnTeamAttendance" style="display: block; margin: 2px 0;">Team Attendance</a>
+                    </div>
+                </details>
+
+            </div>
+
+            <div class="main-content">
+                @RenderBody()
+            </div>
+        </div>
+    }
+
+    
+    
+   
+    @if (role == "Employee")
+    {
+        <div class="dashboard-wrapper">
+            <div class="sidebar">
+                <a href="#" class="active" id="btnProfile">My Info</a>
+                <a href="#" id="btnAttendance">My Attendance</a>
+            </div>
+            <div class="main-content">
+                @RenderBody()
+            </div>
+        </div>
+    }
+  
+
+    <script src="~/lib/jquery/dist/jquery.min.js"></script>
+    <script src="~/lib/bootstrap/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="~/js/site.js" asp-append-version="true"></script>
+    <script src="https://cdn.datatables.net/1.13.6/js/jquery.dataTables.min.js"></script>
+
+    @await RenderSectionAsync("Scripts", required: false)
+
+    <script>
+        $(document).ready(function () {
+            $(".sidebar a").click(function () {
+                $(".sidebar a").removeClass("active");
+                $(this).addClass("active");
+            });
+
+            $('#logoutBtn').click(function (e) {
+                e.preventDefault();
+                $.post('/Login/Logout', function (res) {
+                    if (res.success) {
+                        window.location.href = res.redirectUrl;
+                    } else {
+                        alert(res.message);
+                    }
+                });
+            });
+        });
+    </script>
+</body>
+</html>
