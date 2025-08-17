@@ -36,13 +36,27 @@ namespace final.Controllers
 
                     // 🔐 JWT (for API)
                     var token = JwtHelper.GenerateToken(user.Id.ToString(), user.Role, this.HttpContext.RequestServices.GetRequiredService<IConfiguration>());
-
+                    
+                    string redirectUrl = "";
+                    
+                    if (user.Role == "Admin")
+                    {
+                        redirectUrl = Url.Action("Index", "Employee");
+                    }
+                    else if (user.Role == "Manager")
+                    {
+                        redirectUrl = Url.Action("Team", "Employee");
+                    }
+                    else if (user.Role == "Employee")
+                    {
+                        redirectUrl = Url.Action("Profile", "Employee");
+                    }
+                    
                     return Json(new
                     {
                         success = true,
                         message = "Login successful",
-                        token, // ✅ return token
-                        redirectUrl = Url.Action("Index", "Employee")
+                        redirectUrl = redirectUrl
                     });
                 }
             }
@@ -72,3 +86,4 @@ namespace final.Controllers
 
     }
 }
+
